@@ -250,9 +250,13 @@ export default function SistemaPastasPreview() {
 
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="bg-white p-6 rounded-3xl shadow-xl mb-6">
-          <h1 className="text-center text-5xl font-black text-red-600">
-            GRAFAPLAST
-          </h1>
+         <div className="flex justify-center">
+  <img
+    src="/logo.png"
+    alt="Grafaplast"
+    className="w-[420px] object-contain"
+  />
+</div>
 
           <h2 className="text-center text-2xl font-bold mt-2">
             Controle de Pastas
