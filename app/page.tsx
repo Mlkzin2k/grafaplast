@@ -155,7 +155,7 @@ const alterarStatus = (codigo: string, index: number, status: string) => {
     }
   };
 
-  const salvarEdicao = (codigo, index) => {
+const salvarEdicao = (codigo: string, index: number) => {
     setDados((prev) =>
       prev.map((cliente) => {
         if (cliente.codigo !== codigo) return cliente;
