@@ -109,7 +109,7 @@ export default function SistemaPastasPreview() {
     setMenu(null);
   };
 
-  const excluirPedido = (codigo, index) => {
+  const excluirPedido = (codigo: string, index: number) => {
     const cliente = dados.find((x) => x.codigo === codigo);
     const pedido = cliente?.pedidos[index];
     setDados((prev) =>
