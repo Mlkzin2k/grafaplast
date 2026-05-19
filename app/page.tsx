@@ -131,7 +131,7 @@ export default function SistemaPastasPreview() {
     }
   };
 
-  const alterarStatus = (codigo, index, status) => {
+const alterarStatus = (codigo: string, index: number, status: string) => {
     const cliente = dados.find((x) => x.codigo === codigo);
     const pedido = cliente?.pedidos[index];
     setDados((prev) =>
