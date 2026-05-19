@@ -252,7 +252,7 @@ const salvarEdicao = (codigo: string, index: number) => {
               <h2 className="text-2xl font-black mb-4">Nova Pasta</h2>
 
               <div className="flex flex-col gap-3">
-                <input name="codigo" placeholder="Código" className="border p-3 rounded-xl" value={nova.codigo} onChange={(e) => setNova({ ...nova, codigo: e.target.value })} onKeyDown={(e) => handleKeyDown(e, 'ordem')} />
+                <input name="codigo" placeholder="Codigo" className="border p-3 rounded-xl" value={nova.codigo} onChange={(e) => setNova({ ...nova, codigo: e.target.value })} onKeyDown={(e) => handleKeyDown(e, 'ordem')} />
 
                 <input name="ordem" placeholder="Ordem" className="border p-3 rounded-xl" value={nova.ordem} onChange={(e) => setNova({ ...nova, ordem: e.target.value })} onKeyDown={(e) => handleKeyDown(e, 'nome')} />
 
