@@ -42,20 +42,81 @@ export default function SistemaPastasPreview() {
   });
 
   const [dados, setDados] = useState<Cliente[]>([
-    {
-      codigo: "1810",
-      pedidos: [
-        {
-          ordem: "1°",
-          nome: "Garra Linha PVC",
-          formato: "44X50",
-          cilindro: "52",
-          status: "Armazenado"
-        }
-      ]
-    }
-  ]);
-
+      }
+    ]
+  },
+  {
+    codigo: "461",
+    pedidos: [
+      {
+        ordem: "1°",
+        nome: "dia das mães",
+        formato: "60X100",
+        cilindro: "58",
+        status: "Armazenado"
+      },
+      {
+        ordem: "2°",
+        nome: "giassi geral",
+        formato: "60X100",
+        cilindro: "58",
+        status: "Armazenado"
+      },
+      {
+        ordem: "3°",
+        nome: "giassi açougue 5kg",
+        formato: "28X44",
+        cilindro: "55",
+        status: "Armazenado"
+      }
+    ]
+  },
+  {
+    codigo: "5250",
+    pedidos: [
+      {
+        ordem: "1°",
+        nome: "volt",
+        formato: "31X35",
+        cilindro: "31,5",
+        status: "Armazenado"
+      },
+      {
+        ordem: "2°",
+        nome: "diadora",
+        formato: "31X35",
+        cilindro: "31,5",
+        status: "Armazenado"
+      }
+    ]
+  },
+  {
+    codigo: "1596",
+    pedidos: [
+      {
+        ordem: "1°",
+        nome: "moda e cia",
+        formato: "50X60",
+        cilindro: "60",
+        status: "Armazenado"
+      },
+      {
+        ordem: "2°",
+        nome: "K e A",
+        formato: "50X60",
+        cilindro: "60",
+        status: "Armazenado"
+      },
+      {
+        ordem: "3°",
+        nome: "moda e cia",
+        formato: "40X55",
+        cilindro: "56",
+        status: "Armazenado"
+      }
+    ]
+  }
+]);
   useEffect(() => {
     const dadosSalvos = localStorage.getItem("grafaplast-dados");
     const historicoSalvo = localStorage.getItem("grafaplast-historico");
