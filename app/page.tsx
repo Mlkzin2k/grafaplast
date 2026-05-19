@@ -307,7 +307,7 @@ export default function SistemaPastasPreview() {
               <div className="flex flex-col gap-3">
                 <input
                   name="codigo"
-                  placeholder="Código"
+                  placeholder="Codigo"
                   className="border p-3 rounded-xl"
                   value={nova.codigo}
                   onChange={(e) => setNova({ ...nova, codigo: e.target.value })}
