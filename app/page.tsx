@@ -29,7 +29,9 @@ export default function SistemaPastasPreview() {
   const [pesquisa, setPesquisa] = useState("");
   const [carregado, setCarregado] = useState(false);
 
-  const [historico, setHistorico] = useState<string[]>(["Sistema iniciado"]);
+  const [historico, setHistorico] = useState<string[]>([
+    "Sistema iniciado"
+  ]);
 
   const [nova, setNova] = useState({
     codigo: "",
@@ -58,21 +60,32 @@ export default function SistemaPastasPreview() {
     const dadosSalvos = localStorage.getItem("grafaplast-dados");
     const historicoSalvo = localStorage.getItem("grafaplast-historico");
 
-    if (dadosSalvos) setDados(JSON.parse(dadosSalvos));
-    if (historicoSalvo) setHistorico(JSON.parse(historicoSalvo));
+    if (dadosSalvos) {
+      setDados(JSON.parse(dadosSalvos));
+    }
+
+    if (historicoSalvo) {
+      setHistorico(JSON.parse(historicoSalvo));
+    }
 
     setCarregado(true);
   }, []);
 
   useEffect(() => {
     if (carregado) {
-      localStorage.setItem("grafaplast-dados", JSON.stringify(dados));
+      localStorage.setItem(
+        "grafaplast-dados",
+        JSON.stringify(dados)
+      );
     }
   }, [dados, carregado]);
 
   useEffect(() => {
     if (carregado) {
-      localStorage.setItem("grafaplast-historico", JSON.stringify(historico));
+      localStorage.setItem(
+        "grafaplast-historico",
+        JSON.stringify(historico)
+      );
     }
   }, [historico, carregado]);
 
@@ -92,17 +105,28 @@ export default function SistemaPastasPreview() {
     };
 
     setDados((prev) => {
-      const existe = prev.find((x) => x.codigo === nova.codigo);
+      const existe = prev.find(
+        (cliente) => cliente.codigo === nova.codigo
+      );
 
       if (existe) {
-        return prev.map((item) =>
-          item.codigo === nova.codigo
-            ? { ...item, pedidos: [...item.pedidos, pedido] }
-            : item
+        return prev.map((cliente) =>
+          cliente.codigo === nova.codigo
+            ? {
+                ...cliente,
+                pedidos: [...cliente.pedidos, pedido]
+              }
+            : cliente
         );
       }
 
-      return [...prev, { codigo: nova.codigo, pedidos: [pedido] }];
+      return [
+        ...prev,
+        {
+          codigo: nova.codigo,
+          pedidos: [pedido]
+        }
+      ];
     });
 
     setHistorico((prev) => [
@@ -122,7 +146,9 @@ export default function SistemaPastasPreview() {
   };
 
   const excluirPasta = (codigo: string) => {
-    setDados((prev) => prev.filter((x) => x.codigo !== codigo));
+    setDados((prev) =>
+      prev.filter((cliente) => cliente.codigo !== codigo)
+    );
 
     setHistorico((prev) => [
       `🗑️ Pasta ${codigo} excluída - ${gerarData()}`,
@@ -132,8 +158,14 @@ export default function SistemaPastasPreview() {
     setMenu(null);
   };
 
-  const excluirPedido = (codigo: string, index: number) => {
-    const cliente = dados.find((x) => x.codigo === codigo);
+  const excluirPedido = (
+    codigo: string,
+    index: number
+  ) => {
+    const cliente = dados.find(
+      (x) => x.codigo === codigo
+    );
+
     const pedido = cliente?.pedidos[index];
 
     setDados((prev) =>
@@ -141,7 +173,9 @@ export default function SistemaPastasPreview() {
         cliente.codigo === codigo
           ? {
               ...cliente,
-              pedidos: cliente.pedidos.filter((_, i) => i !== index)
+              pedidos: cliente.pedidos.filter(
+                (_, i) => i !== index
+              )
             }
           : cliente
       )
@@ -149,7 +183,7 @@ export default function SistemaPastasPreview() {
 
     if (pedido) {
       setHistorico((prev) => [
-        `❌ Pedido ${pedido.nome} excluído da pasta ${codigo} - ${gerarData()}`,
+        `❌ Pedido ${pedido.nome} excluído - ${gerarData()}`,
         ...prev
       ]);
     }
@@ -160,7 +194,10 @@ export default function SistemaPastasPreview() {
     index: number,
     status: "Armazenado" | "Retirado"
   ) => {
-    const cliente = dados.find((x) => x.codigo === codigo);
+    const cliente = dados.find(
+      (x) => x.codigo === codigo
+    );
+
     const pedido = cliente?.pedidos[index];
 
     setDados((prev) =>
@@ -169,7 +206,9 @@ export default function SistemaPastasPreview() {
           ? {
               ...cliente,
               pedidos: cliente.pedidos.map((pedido, i) =>
-                i === index ? { ...pedido, status } : pedido
+                i === index
+                  ? { ...pedido, status }
+                  : pedido
               )
             }
           : cliente
@@ -186,7 +225,10 @@ export default function SistemaPastasPreview() {
     }
   };
 
-  const salvarEdicao = (codigo: string, index: number) => {
+  const salvarEdicao = (
+    codigo: string,
+    index: number
+  ) => {
     if (!editando) return;
 
     setDados((prev) =>
@@ -194,16 +236,17 @@ export default function SistemaPastasPreview() {
         cliente.codigo === codigo
           ? {
               ...cliente,
-              pedidos: cliente.pedidos.map((pedido, i) =>
-                i === index
-                  ? {
-                      ordem: editando.ordem,
-                      nome: editando.nome,
-                      formato: editando.formato,
-                      cilindro: editando.cilindro,
-                      status: editando.status
-                    }
-                  : pedido
+              pedidos: cliente.pedidos.map(
+                (pedido, i) =>
+                  i === index
+                    ? {
+                        ordem: editando.ordem,
+                        nome: editando.nome,
+                        formato: editando.formato,
+                        cilindro: editando.cilindro,
+                        status: editando.status
+                      }
+                    : pedido
               )
             }
           : cliente
@@ -224,19 +267,26 @@ export default function SistemaPastasPreview() {
   ) => {
     if (e.key === "Enter") {
       e.preventDefault();
+
       const el = document.querySelector(
         `[name='${proximo}']`
       ) as HTMLInputElement | null;
 
-      if (el) el.focus();
+      if (el) {
+        el.focus();
+      }
     }
   };
 
   const dadosFiltrados = dados.filter(
     (cliente) =>
-      cliente.codigo.toLowerCase().includes(pesquisa.toLowerCase()) ||
+      cliente.codigo
+        .toLowerCase()
+        .includes(pesquisa.toLowerCase()) ||
       cliente.pedidos.some((pedido) =>
-        pedido.nome.toLowerCase().includes(pesquisa.toLowerCase())
+        pedido.nome
+          .toLowerCase()
+          .includes(pesquisa.toLowerCase())
       )
   );
 
@@ -250,13 +300,33 @@ export default function SistemaPastasPreview() {
 
       <div className="max-w-6xl mx-auto relative z-10">
         <div className="bg-white p-6 rounded-3xl shadow-xl mb-6">
-         <div className="flex justify-center">
-  <img
-    src="/logo.png"
-    alt="Grafaplast"
-    className="w-[420px] object-contain"
-  />
-</div>
+          <h1
+            className="text-center italic font-black uppercase leading-none select-none"
+            style={{
+              fontSize: "72px",
+              color: "#d1d5db",
+              textShadow: `
+                0 2px 0 #9ca3af,
+                0 4px 0 #6b7280,
+                0 6px 12px rgba(0,0,0,0.45)
+              `,
+              fontFamily: "Arial Black"
+            }}
+          >
+            grafaplast
+
+            <span
+              style={{
+                display: "block",
+                fontSize: "38px",
+                marginTop: "-10px",
+                marginLeft: "260px",
+                color: "#d1d5db"
+              }}
+            >
+              Embalagens
+            </span>
+          </h1>
 
           <h2 className="text-center text-2xl font-bold mt-2">
             Controle de Pastas
@@ -271,24 +341,35 @@ export default function SistemaPastasPreview() {
             </button>
 
             <button
-              onClick={() => setHistoricoAberto(!historicoAberto)}
+              onClick={() =>
+                setHistoricoAberto(!historicoAberto)
+              }
               className="bg-blue-100 text-blue-700 px-5 py-3 rounded-2xl font-bold"
             >
               📜 Histórico
             </button>
 
             <div className="ml-auto flex gap-5 font-bold">
-              <div>📁 Clientes: {dados.length}</div>
               <div>
-                📦 Pastas: {dados.reduce((a, b) => a + b.pedidos.length, 0)}
+                📁 Clientes: {dados.length}
+              </div>
+
+              <div>
+                📦 Pastas:{" "}
+                {dados.reduce(
+                  (a, b) => a + b.pedidos.length,
+                  0
+                )}
               </div>
             </div>
           </div>
 
-          <div className="mt-4 flex gap-3">
+          <div className="mt-4">
             <input
               value={pesquisa}
-              onChange={(e) => setPesquisa(e.target.value)}
+              onChange={(e) =>
+                setPesquisa(e.target.value)
+              }
               placeholder="Pesquisar cliente ou pasta..."
               className="border p-3 rounded-2xl w-full"
             />
@@ -306,16 +387,25 @@ export default function SistemaPastasPreview() {
         {mostrarNova && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-3xl w-[420px]">
-              <h2 className="text-2xl font-black mb-4">Nova Pasta</h2>
+              <h2 className="text-2xl font-black mb-4">
+                Nova Pasta
+              </h2>
 
               <div className="flex flex-col gap-3">
                 <input
                   name="codigo"
-                  placeholder="Codigo"
+                  placeholder="Código"
                   className="border p-3 rounded-xl"
                   value={nova.codigo}
-                  onChange={(e) => setNova({ ...nova, codigo: e.target.value })}
-                  onKeyDown={(e) => handleKeyDown(e, "ordem")}
+                  onChange={(e) =>
+                    setNova({
+                      ...nova,
+                      codigo: e.target.value
+                    })
+                  }
+                  onKeyDown={(e) =>
+                    handleKeyDown(e, "ordem")
+                  }
                 />
 
                 <input
@@ -323,8 +413,15 @@ export default function SistemaPastasPreview() {
                   placeholder="Ordem"
                   className="border p-3 rounded-xl"
                   value={nova.ordem}
-                  onChange={(e) => setNova({ ...nova, ordem: e.target.value })}
-                  onKeyDown={(e) => handleKeyDown(e, "nome")}
+                  onChange={(e) =>
+                    setNova({
+                      ...nova,
+                      ordem: e.target.value
+                    })
+                  }
+                  onKeyDown={(e) =>
+                    handleKeyDown(e, "nome")
+                  }
                 />
 
                 <input
@@ -332,8 +429,15 @@ export default function SistemaPastasPreview() {
                   placeholder="Nome"
                   className="border p-3 rounded-xl"
                   value={nova.nome}
-                  onChange={(e) => setNova({ ...nova, nome: e.target.value })}
-                  onKeyDown={(e) => handleKeyDown(e, "formato")}
+                  onChange={(e) =>
+                    setNova({
+                      ...nova,
+                      nome: e.target.value
+                    })
+                  }
+                  onKeyDown={(e) =>
+                    handleKeyDown(e, "formato")
+                  }
                 />
 
                 <input
@@ -344,10 +448,14 @@ export default function SistemaPastasPreview() {
                   onChange={(e) =>
                     setNova({
                       ...nova,
-                      formato: e.target.value.split(" ").join("X")
+                      formato: e.target.value
+                        .split(" ")
+                        .join("X")
                     })
                   }
-                  onKeyDown={(e) => handleKeyDown(e, "cilindro")}
+                  onKeyDown={(e) =>
+                    handleKeyDown(e, "cilindro")
+                  }
                 />
 
                 <input
@@ -356,9 +464,14 @@ export default function SistemaPastasPreview() {
                   className="border p-3 rounded-xl"
                   value={nova.cilindro}
                   onChange={(e) =>
-                    setNova({ ...nova, cilindro: e.target.value })
+                    setNova({
+                      ...nova,
+                      cilindro: e.target.value
+                    })
                   }
-                  onKeyDown={(e) => e.key === "Enter" && adicionar()}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && adicionar()
+                  }
                 />
               </div>
 
@@ -371,7 +484,9 @@ export default function SistemaPastasPreview() {
                 </button>
 
                 <button
-                  onClick={() => setMostrarNova(false)}
+                  onClick={() =>
+                    setMostrarNova(false)
+                  }
                   className="bg-red-100 text-red-700 py-3 rounded-2xl font-bold w-full"
                 >
                   Voltar
@@ -389,18 +504,31 @@ export default function SistemaPastasPreview() {
             <div className="flex justify-between items-center">
               <button
                 onClick={() =>
-                  setAberto(aberto === cliente.codigo ? null : cliente.codigo)
+                  setAberto(
+                    aberto === cliente.codigo
+                      ? null
+                      : cliente.codigo
+                  )
                 }
                 className="font-black text-xl flex items-center gap-2"
               >
-                <span>{aberto === cliente.codigo ? "▼" : "▶"}</span>
+                <span>
+                  {aberto === cliente.codigo
+                    ? "▼"
+                    : "▶"}
+                </span>
+
                 📁 {cliente.codigo}
               </button>
 
               <div className="relative">
                 <button
                   onClick={() =>
-                    setMenu(menu === cliente.codigo ? null : cliente.codigo)
+                    setMenu(
+                      menu === cliente.codigo
+                        ? null
+                        : cliente.codigo
+                    )
                   }
                 >
                   🗑️
@@ -409,7 +537,9 @@ export default function SistemaPastasPreview() {
                 {menu === cliente.codigo && (
                   <div className="absolute right-0 top-10 bg-white border p-3 rounded-2xl shadow-xl">
                     <button
-                      onClick={() => excluirPasta(cliente.codigo)}
+                      onClick={() =>
+                        excluirPasta(cliente.codigo)
+                      }
                       className="bg-red-100 text-red-700 px-4 py-2 rounded-xl font-bold"
                     >
                       Excluir Pasta
@@ -421,132 +551,160 @@ export default function SistemaPastasPreview() {
 
             {aberto === cliente.codigo && (
               <div className="mt-5 flex flex-col gap-3">
-                {cliente.pedidos.map((pedido, index) => (
-                  <div key={index} className="bg-gray-100 rounded-2xl p-4">
-                    {editando &&
-                    editando.codigo === cliente.codigo &&
-                    editando.index === index ? (
-                      <div className="flex flex-col gap-3">
-                        <input
-                          className="border p-3 rounded-xl"
-                          value={editando.ordem}
-                          onChange={(e) =>
-                            setEditando({
-                              ...editando,
-                              ordem: e.target.value
-                            })
-                          }
-                        />
-
-                        <input
-                          className="border p-3 rounded-xl"
-                          value={editando.nome}
-                          onChange={(e) =>
-                            setEditando({
-                              ...editando,
-                              nome: e.target.value
-                            })
-                          }
-                        />
-
-                        <input
-                          className="border p-3 rounded-xl"
-                          value={editando.formato}
-                          onChange={(e) =>
-                            setEditando({
-                              ...editando,
-                              formato: e.target.value
-                            })
-                          }
-                        />
-
-                        <input
-                          className="border p-3 rounded-xl"
-                          value={editando.cilindro}
-                          onChange={(e) =>
-                            setEditando({
-                              ...editando,
-                              cilindro: e.target.value
-                            })
-                          }
-                        />
-
-                        <button
-                          onClick={() => salvarEdicao(cliente.codigo, index)}
-                          className="bg-green-500 text-white py-3 rounded-2xl font-bold"
-                        >
-                          Salvar Alterações
-                        </button>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="font-bold text-lg">
-                          {pedido.ordem} - {pedido.nome}
-                        </div>
-
-                        <div className="mt-2">
-                          📐 {pedido.formato} | ⚙️ {pedido.cilindro}
-                        </div>
-
-                        <div className="mt-3">
-                          <span
-                            className={
-                              pedido.status === "Armazenado"
-                                ? "bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold"
-                                : "bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-bold"
-                            }
-                          >
-                            {pedido.status}
-                          </span>
-                        </div>
-
-                        <div className="flex gap-2 flex-wrap mt-4">
-                          <button
-                            onClick={() =>
-                              alterarStatus(
-                                cliente.codigo,
-                                index,
-                                "Armazenado"
-                              )
-                            }
-                            className="bg-green-100 text-green-700 px-4 py-2 rounded-xl font-bold"
-                          >
-                            📥 Armazenar
-                          </button>
-
-                          <button
-                            onClick={() =>
-                              alterarStatus(cliente.codigo, index, "Retirado")
-                            }
-                            className="bg-orange-100 text-orange-700 px-4 py-2 rounded-xl font-bold"
-                          >
-                            📤 Retirar
-                          </button>
-
-                          <button
-                            onClick={() =>
+                {cliente.pedidos.map(
+                  (pedido, index) => (
+                    <div
+                      key={index}
+                      className="bg-gray-100 rounded-2xl p-4"
+                    >
+                      {editando &&
+                      editando.codigo ===
+                        cliente.codigo &&
+                      editando.index === index ? (
+                        <div className="flex flex-col gap-3">
+                          <input
+                            className="border p-3 rounded-xl"
+                            value={editando.ordem}
+                            onChange={(e) =>
                               setEditando({
-                                ...pedido,
-                                codigo: cliente.codigo,
-                                index
+                                ...editando,
+                                ordem:
+                                  e.target.value
                               })
                             }
-                            className="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-xl font-bold"
-                          >
-                            ✏️ Editar
-                          </button>
+                          />
+
+                          <input
+                            className="border p-3 rounded-xl"
+                            value={editando.nome}
+                            onChange={(e) =>
+                              setEditando({
+                                ...editando,
+                                nome:
+                                  e.target.value
+                              })
+                            }
+                          />
+
+                          <input
+                            className="border p-3 rounded-xl"
+                            value={editando.formato}
+                            onChange={(e) =>
+                              setEditando({
+                                ...editando,
+                                formato:
+                                  e.target.value
+                              })
+                            }
+                          />
+
+                          <input
+                            className="border p-3 rounded-xl"
+                            value={editando.cilindro}
+                            onChange={(e) =>
+                              setEditando({
+                                ...editando,
+                                cilindro:
+                                  e.target.value
+                              })
+                            }
+                          />
 
                           <button
-                            onClick={() => excluirPedido(cliente.codigo, index)}
-                            className="bg-red-100 text-red-700 px-4 py-2 rounded-xl font-bold"
+                            onClick={() =>
+                              salvarEdicao(
+                                cliente.codigo,
+                                index
+                              )
+                            }
+                            className="bg-green-500 text-white py-3 rounded-2xl font-bold"
                           >
-                            ❌ Excluir
+                            Salvar Alterações
                           </button>
                         </div>
-                      </>
-                    )}
-                  </div>
-                ))}
+                      ) : (
+                        <>
+                          <div className="font-bold text-lg">
+                            {pedido.ordem} -{" "}
+                            {pedido.nome}
+                          </div>
+
+                          <div className="mt-2">
+                            📐 {pedido.formato} |
+                            ⚙️ {pedido.cilindro}
+                          </div>
+
+                          <div className="mt-3">
+                            <span
+                              className={
+                                pedido.status ===
+                                "Armazenado"
+                                  ? "bg-green-100 text-green-700 px-3 py-1 rounded-full font-bold"
+                                  : "bg-orange-100 text-orange-700 px-3 py-1 rounded-full font-bold"
+                              }
+                            >
+                              {pedido.status}
+                            </span>
+                          </div>
+
+                          <div className="flex gap-2 flex-wrap mt-4">
+                            <button
+                              onClick={() =>
+                                alterarStatus(
+                                  cliente.codigo,
+                                  index,
+                                  "Armazenado"
+                                )
+                              }
+                              className="bg-green-100 text-green-700 px-4 py-2 rounded-xl font-bold"
+                            >
+                              📥 Armazenar
+                            </button>
+
+                            <button
+                              onClick={() =>
+                                alterarStatus(
+                                  cliente.codigo,
+                                  index,
+                                  "Retirado"
+                                )
+                              }
+                              className="bg-orange-100 text-orange-700 px-4 py-2 rounded-xl font-bold"
+                            >
+                              📤 Retirar
+                            </button>
+
+                            <button
+                              onClick={() =>
+                                setEditando({
+                                  ...pedido,
+                                  codigo:
+                                    cliente.codigo,
+                                  index
+                                })
+                              }
+                              className="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-xl font-bold"
+                            >
+                              ✏️ Editar
+                            </button>
+
+                            <button
+                              onClick={() =>
+                                excluirPedido(
+                                  cliente.codigo,
+                                  index
+                                )
+                              }
+                              className="bg-red-100 text-red-700 px-4 py-2 rounded-xl font-bold"
+                            >
+                              ❌ Excluir
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )
+                )}
               </div>
             )}
           </div>
