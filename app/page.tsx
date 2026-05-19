@@ -103,7 +103,7 @@ export default function SistemaPastasPreview() {
     setMostrarNova(false);
   };
 
-  const excluirPasta = (codigo) => {
+ const excluirPasta = (codigo: string) => {
     setDados((prev) => prev.filter((x) => x.codigo !== codigo));
     setHistorico((prev) => [`🗑️ Pasta ${codigo} excluída - ${gerarData()}`, ...prev]);
     setMenu(null);
