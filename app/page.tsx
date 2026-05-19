@@ -2,19 +2,34 @@
 
 import { useEffect, useState } from "react";
 
+type Pedido = {
+  ordem: string;
+  nome: string;
+  formato: string;
+  cilindro: string;
+  status: "Armazenado" | "Retirado";
+};
+
+type Cliente = {
+  codigo: string;
+  pedidos: Pedido[];
+};
+
+type Editando = Pedido & {
+  codigo: string;
+  index: number;
+};
+
 export default function SistemaPastasPreview() {
-  const [aberto, setAberto] = useState(null);
+  const [aberto, setAberto] = useState<string | null>(null);
   const [mostrarNova, setMostrarNova] = useState(false);
   const [historicoAberto, setHistoricoAberto] = useState(false);
-  const [menu, setMenu] = useState(null);
-  const [editando, setEditando] = useState(null);
+  const [menu, setMenu] = useState<string | null>(null);
+  const [editando, setEditando] = useState<Editando | null>(null);
   const [pesquisa, setPesquisa] = useState("");
+  const [carregado, setCarregado] = useState(false);
 
-  const [historico, setHistorico] = useState(["Sistema iniciado"]);
-
-  const gerarData = () => {
-    return new Date().toLocaleString('pt-BR');
-  };
+  const [historico, setHistorico] = useState<string[]>(["Sistema iniciado"]);
 
   const [nova, setNova] = useState({
     codigo: "",
@@ -24,7 +39,7 @@ export default function SistemaPastasPreview() {
     cilindro: ""
   });
 
-  const [dados, setDados] = useState([
+  const [dados, setDados] = useState<Cliente[]>([
     {
       codigo: "1810",
       pedidos: [
@@ -43,27 +58,32 @@ export default function SistemaPastasPreview() {
     const dadosSalvos = localStorage.getItem("grafaplast-dados");
     const historicoSalvo = localStorage.getItem("grafaplast-historico");
 
-    if (dadosSalvos) {
-      setDados(JSON.parse(dadosSalvos));
-    }
+    if (dadosSalvos) setDados(JSON.parse(dadosSalvos));
+    if (historicoSalvo) setHistorico(JSON.parse(historicoSalvo));
 
-    if (historicoSalvo) {
-      setHistorico(JSON.parse(historicoSalvo));
-    }
+    setCarregado(true);
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("grafaplast-dados", JSON.stringify(dados));
-  }, [dados]);
+    if (carregado) {
+      localStorage.setItem("grafaplast-dados", JSON.stringify(dados));
+    }
+  }, [dados, carregado]);
 
   useEffect(() => {
-    localStorage.setItem("grafaplast-historico", JSON.stringify(historico));
-  }, [historico]);
+    if (carregado) {
+      localStorage.setItem("grafaplast-historico", JSON.stringify(historico));
+    }
+  }, [historico, carregado]);
+
+  const gerarData = () => {
+    return new Date().toLocaleString("pt-BR");
+  };
 
   const adicionar = () => {
     if (!nova.codigo || !nova.nome) return;
 
-    const pedido = {
+    const pedido: Pedido = {
       ordem: nova.ordem,
       nome: nova.nome,
       formato: nova.formato,
@@ -75,22 +95,20 @@ export default function SistemaPastasPreview() {
       const existe = prev.find((x) => x.codigo === nova.codigo);
 
       if (existe) {
-        return prev.map((item) => {
-          if (item.codigo === nova.codigo) {
-            return {
-              ...item,
-              pedidos: [...item.pedidos, pedido]
-            };
-          }
-
-          return item;
-        });
+        return prev.map((item) =>
+          item.codigo === nova.codigo
+            ? { ...item, pedidos: [...item.pedidos, pedido] }
+            : item
+        );
       }
 
       return [...prev, { codigo: nova.codigo, pedidos: [pedido] }];
     });
 
-    setHistorico((prev) => [`📁 Nova pasta criada (${nova.codigo}) - ${gerarData()}`, ...prev]);
+    setHistorico((prev) => [
+      `📁 Nova pasta criada (${nova.codigo}) - ${gerarData()}`,
+      ...prev
+    ]);
 
     setNova({
       codigo: "",
@@ -103,24 +121,30 @@ export default function SistemaPastasPreview() {
     setMostrarNova(false);
   };
 
- const excluirPasta = (codigo: string) => {
+  const excluirPasta = (codigo: string) => {
     setDados((prev) => prev.filter((x) => x.codigo !== codigo));
-    setHistorico((prev) => [`🗑️ Pasta ${codigo} excluída - ${gerarData()}`, ...prev]);
+
+    setHistorico((prev) => [
+      `🗑️ Pasta ${codigo} excluída - ${gerarData()}`,
+      ...prev
+    ]);
+
     setMenu(null);
   };
 
   const excluirPedido = (codigo: string, index: number) => {
     const cliente = dados.find((x) => x.codigo === codigo);
     const pedido = cliente?.pedidos[index];
-    setDados((prev) =>
-      prev.map((cliente) => {
-        if (cliente.codigo !== codigo) return cliente;
 
-        return {
-          ...cliente,
-          pedidos: cliente.pedidos.filter((_, i) => i !== index)
-        };
-      })
+    setDados((prev) =>
+      prev.map((cliente) =>
+        cliente.codigo === codigo
+          ? {
+              ...cliente,
+              pedidos: cliente.pedidos.filter((_, i) => i !== index)
+            }
+          : cliente
+      )
     );
 
     if (pedido) {
@@ -131,60 +155,89 @@ export default function SistemaPastasPreview() {
     }
   };
 
-const alterarStatus = (codigo: string, index: number, status: string) => {
+  const alterarStatus = (
+    codigo: string,
+    index: number,
+    status: "Armazenado" | "Retirado"
+  ) => {
     const cliente = dados.find((x) => x.codigo === codigo);
     const pedido = cliente?.pedidos[index];
-    setDados((prev) =>
-      prev.map((cliente) => {
-        if (cliente.codigo !== codigo) return cliente;
 
-        return {
-          ...cliente,
-          pedidos: cliente.pedidos.map((pedido, i) =>
-            i === index ? { ...pedido, status } : pedido
-          )
-        };
-      })
+    setDados((prev) =>
+      prev.map((cliente) =>
+        cliente.codigo === codigo
+          ? {
+              ...cliente,
+              pedidos: cliente.pedidos.map((pedido, i) =>
+                i === index ? { ...pedido, status } : pedido
+              )
+            }
+          : cliente
+      )
     );
 
     if (pedido) {
       setHistorico((prev) => [
-        `${status === 'Armazenado' ? '📥' : '📤'} Pedido ${pedido.nome} ${status.toLowerCase()} - ${gerarData()}`,
+        `${status === "Armazenado" ? "📥" : "📤"} Pedido ${
+          pedido.nome
+        } ${status.toLowerCase()} - ${gerarData()}`,
         ...prev
       ]);
     }
   };
 
-const salvarEdicao = (codigo: string, index: number) => {
-    setDados((prev) =>
-      prev.map((cliente) => {
-        if (cliente.codigo !== codigo) return cliente;
+  const salvarEdicao = (codigo: string, index: number) => {
+    if (!editando) return;
 
-        return {
-          ...cliente,
-          pedidos: cliente.pedidos.map((pedido, i) =>
-            i === index ? editando : pedido
-          )
-        };
-      })
+    setDados((prev) =>
+      prev.map((cliente) =>
+        cliente.codigo === codigo
+          ? {
+              ...cliente,
+              pedidos: cliente.pedidos.map((pedido, i) =>
+                i === index
+                  ? {
+                      ordem: editando.ordem,
+                      nome: editando.nome,
+                      formato: editando.formato,
+                      cilindro: editando.cilindro,
+                      status: editando.status
+                    }
+                  : pedido
+              )
+            }
+          : cliente
+      )
     );
+
+    setHistorico((prev) => [
+      `✏️ Pedido ${editando.nome} editado - ${gerarData()}`,
+      ...prev
+    ]);
 
     setEditando(null);
   };
 
-  const handleKeyDown = (e, proximo) => {
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    proximo: string
+  ) => {
     if (e.key === "Enter") {
       e.preventDefault();
-      const el = document.querySelector(`[name='${proximo}']`);
+      const el = document.querySelector(
+        `[name='${proximo}']`
+      ) as HTMLInputElement | null;
+
       if (el) el.focus();
     }
   };
 
-  const dadosFiltrados = dados.filter((cliente) =>
-    cliente.codigo.toLowerCase().includes(pesquisa.toLowerCase()) ||
-    cliente.pedidos.some((pedido) =>
-      pedido.nome.toLowerCase().includes(pesquisa.toLowerCase())
-    )
+  const dadosFiltrados = dados.filter(
+    (cliente) =>
+      cliente.codigo.toLowerCase().includes(pesquisa.toLowerCase()) ||
+      cliente.pedidos.some((pedido) =>
+        pedido.nome.toLowerCase().includes(pesquisa.toLowerCase())
+      )
   );
 
   return (
@@ -252,23 +305,71 @@ const salvarEdicao = (codigo: string, index: number) => {
               <h2 className="text-2xl font-black mb-4">Nova Pasta</h2>
 
               <div className="flex flex-col gap-3">
-                <input name="codigo" placeholder="Codigo" className="border p-3 rounded-xl" value={nova.codigo} onChange={(e) => setNova({ ...nova, codigo: e.target.value })} onKeyDown={(e) => handleKeyDown(e, 'ordem')} />
+                <input
+                  name="codigo"
+                  placeholder="Código"
+                  className="border p-3 rounded-xl"
+                  value={nova.codigo}
+                  onChange={(e) => setNova({ ...nova, codigo: e.target.value })}
+                  onKeyDown={(e) => handleKeyDown(e, "ordem")}
+                />
 
-                <input name="ordem" placeholder="Ordem" className="border p-3 rounded-xl" value={nova.ordem} onChange={(e) => setNova({ ...nova, ordem: e.target.value })} onKeyDown={(e) => handleKeyDown(e, 'nome')} />
+                <input
+                  name="ordem"
+                  placeholder="Ordem"
+                  className="border p-3 rounded-xl"
+                  value={nova.ordem}
+                  onChange={(e) => setNova({ ...nova, ordem: e.target.value })}
+                  onKeyDown={(e) => handleKeyDown(e, "nome")}
+                />
 
-                <input name="nome" placeholder="Nome" className="border p-3 rounded-xl" value={nova.nome} onChange={(e) => setNova({ ...nova, nome: e.target.value })} onKeyDown={(e) => handleKeyDown(e, 'formato')} />
+                <input
+                  name="nome"
+                  placeholder="Nome"
+                  className="border p-3 rounded-xl"
+                  value={nova.nome}
+                  onChange={(e) => setNova({ ...nova, nome: e.target.value })}
+                  onKeyDown={(e) => handleKeyDown(e, "formato")}
+                />
 
-                <input name="formato" placeholder="Formato" className="border p-3 rounded-xl" value={nova.formato} onChange={(e) => setNova({ ...nova, formato: e.target.value.split(" ").join("X") })} onKeyDown={(e) => handleKeyDown(e, 'cilindro')} />
+                <input
+                  name="formato"
+                  placeholder="Formato"
+                  className="border p-3 rounded-xl"
+                  value={nova.formato}
+                  onChange={(e) =>
+                    setNova({
+                      ...nova,
+                      formato: e.target.value.split(" ").join("X")
+                    })
+                  }
+                  onKeyDown={(e) => handleKeyDown(e, "cilindro")}
+                />
 
-                <input name="cilindro" placeholder="Cilindro" className="border p-3 rounded-xl" value={nova.cilindro} onChange={(e) => setNova({ ...nova, cilindro: e.target.value })} onKeyDown={(e) => e.key === 'Enter' && adicionar()} />
+                <input
+                  name="cilindro"
+                  placeholder="Cilindro"
+                  className="border p-3 rounded-xl"
+                  value={nova.cilindro}
+                  onChange={(e) =>
+                    setNova({ ...nova, cilindro: e.target.value })
+                  }
+                  onKeyDown={(e) => e.key === "Enter" && adicionar()}
+                />
               </div>
 
               <div className="flex gap-3 mt-5">
-                <button onClick={adicionar} className="bg-black text-white py-3 rounded-2xl font-bold w-full">
+                <button
+                  onClick={adicionar}
+                  className="bg-black text-white py-3 rounded-2xl font-bold w-full"
+                >
                   Adicionar
                 </button>
 
-                <button onClick={() => setMostrarNova(false)} className="bg-red-100 text-red-700 py-3 rounded-2xl font-bold w-full">
+                <button
+                  onClick={() => setMostrarNova(false)}
+                  className="bg-red-100 text-red-700 py-3 rounded-2xl font-bold w-full"
+                >
                   Voltar
                 </button>
               </div>
@@ -277,21 +378,36 @@ const salvarEdicao = (codigo: string, index: number) => {
         )}
 
         {dadosFiltrados.map((cliente) => (
-          <div key={cliente.codigo} className="bg-white p-5 rounded-3xl shadow-lg mb-4 relative">
+          <div
+            key={cliente.codigo}
+            className="bg-white p-5 rounded-3xl shadow-lg mb-4 relative"
+          >
             <div className="flex justify-between items-center">
-              <button onClick={() => setAberto(aberto === cliente.codigo ? null : cliente.codigo)} className="font-black text-xl flex items-center gap-2">
+              <button
+                onClick={() =>
+                  setAberto(aberto === cliente.codigo ? null : cliente.codigo)
+                }
+                className="font-black text-xl flex items-center gap-2"
+              >
                 <span>{aberto === cliente.codigo ? "▼" : "▶"}</span>
                 📁 {cliente.codigo}
               </button>
 
               <div className="relative">
-                <button onClick={() => setMenu(menu === cliente.codigo ? null : cliente.codigo)}>
+                <button
+                  onClick={() =>
+                    setMenu(menu === cliente.codigo ? null : cliente.codigo)
+                  }
+                >
                   🗑️
                 </button>
 
                 {menu === cliente.codigo && (
                   <div className="absolute right-0 top-10 bg-white border p-3 rounded-2xl shadow-xl">
-                    <button onClick={() => excluirPasta(cliente.codigo)} className="bg-red-100 text-red-700 px-4 py-2 rounded-xl font-bold">
+                    <button
+                      onClick={() => excluirPasta(cliente.codigo)}
+                      className="bg-red-100 text-red-700 px-4 py-2 rounded-xl font-bold"
+                    >
                       Excluir Pasta
                     </button>
                   </div>
@@ -303,30 +419,52 @@ const salvarEdicao = (codigo: string, index: number) => {
               <div className="mt-5 flex flex-col gap-3">
                 {cliente.pedidos.map((pedido, index) => (
                   <div key={index} className="bg-gray-100 rounded-2xl p-4">
-                    {editando && editando.codigo === cliente.codigo && editando.index === index ? (
+                    {editando &&
+                    editando.codigo === cliente.codigo &&
+                    editando.index === index ? (
                       <div className="flex flex-col gap-3">
                         <input
                           className="border p-3 rounded-xl"
                           value={editando.ordem}
-                          onChange={(e) => setEditando({ ...editando, ordem: e.target.value })}
+                          onChange={(e) =>
+                            setEditando({
+                              ...editando,
+                              ordem: e.target.value
+                            })
+                          }
                         />
 
                         <input
                           className="border p-3 rounded-xl"
                           value={editando.nome}
-                          onChange={(e) => setEditando({ ...editando, nome: e.target.value })}
+                          onChange={(e) =>
+                            setEditando({
+                              ...editando,
+                              nome: e.target.value
+                            })
+                          }
                         />
 
                         <input
                           className="border p-3 rounded-xl"
                           value={editando.formato}
-                          onChange={(e) => setEditando({ ...editando, formato: e.target.value })}
+                          onChange={(e) =>
+                            setEditando({
+                              ...editando,
+                              formato: e.target.value
+                            })
+                          }
                         />
 
                         <input
                           className="border p-3 rounded-xl"
                           value={editando.cilindro}
-                          onChange={(e) => setEditando({ ...editando, cilindro: e.target.value })}
+                          onChange={(e) =>
+                            setEditando({
+                              ...editando,
+                              cilindro: e.target.value
+                            })
+                          }
                         />
 
                         <button
@@ -360,21 +498,35 @@ const salvarEdicao = (codigo: string, index: number) => {
 
                         <div className="flex gap-2 flex-wrap mt-4">
                           <button
-                            onClick={() => alterarStatus(cliente.codigo, index, "Armazenado")}
+                            onClick={() =>
+                              alterarStatus(
+                                cliente.codigo,
+                                index,
+                                "Armazenado"
+                              )
+                            }
                             className="bg-green-100 text-green-700 px-4 py-2 rounded-xl font-bold"
                           >
                             📥 Armazenar
                           </button>
 
                           <button
-                            onClick={() => alterarStatus(cliente.codigo, index, "Retirado")}
+                            onClick={() =>
+                              alterarStatus(cliente.codigo, index, "Retirado")
+                            }
                             className="bg-orange-100 text-orange-700 px-4 py-2 rounded-xl font-bold"
                           >
                             📤 Retirar
                           </button>
 
                           <button
-                            onClick={() => setEditando({ ...pedido, codigo: cliente.codigo, index })}
+                            onClick={() =>
+                              setEditando({
+                                ...pedido,
+                                codigo: cliente.codigo,
+                                index
+                              })
+                            }
                             className="bg-yellow-100 text-yellow-700 px-4 py-2 rounded-xl font-bold"
                           >
                             ✏️ Editar
@@ -399,4 +551,3 @@ const salvarEdicao = (codigo: string, index: number) => {
     </div>
   );
 }
-
