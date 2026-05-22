@@ -1832,13 +1832,25 @@ export default function SistemaPastasPreview() {
     }
   };
 
-  const dadosFiltrados = dados.filter(
-    (cliente) =>
-      cliente.codigo.toLowerCase().includes(pesquisa.toLowerCase()) ||
-      cliente.pedidos.some((pedido) =>
-        pedido.nome.toLowerCase().includes(pesquisa.toLowerCase())
-      )
-  );
+  const dadosFiltrados = dados
+  .map((cliente) => {
+    const termo = pesquisa.toLowerCase();
+
+    const codigoBate = cliente.codigo.toLowerCase().includes(termo);
+
+    const pedidosFiltrados = pesquisa
+      ? cliente.pedidos.filter((pedido) =>
+          pedido.nome.toLowerCase().includes(termo)
+        )
+      : cliente.pedidos;
+
+    return {
+      ...cliente,
+      pedidos: codigoBate ? cliente.pedidos : pedidosFiltrados
+    };
+  })
+  .filter((cliente) => cliente.pedidos.length > 0)
+  .sort((a, b) => Number(a.codigo) - Number(b.codigo));
 
   return (
     <div className="min-h-screen bg-gray-100 p-6 relative overflow-hidden">
