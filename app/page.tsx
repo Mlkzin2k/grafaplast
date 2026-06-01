@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 
 type StatusPedido = "Armazenado" | "Retirado";
 
@@ -1732,7 +1733,7 @@ export default function SistemaPastasPreview() {
     }));
   };
 
-  const adicionar = () => {
+  const adicionar = async () => {
     if (!nova.codigo || !nova.nome) return;
 
     const pedido: Pedido = {
@@ -1742,6 +1743,17 @@ export default function SistemaPastasPreview() {
       cilindro: nova.cilindro,
       status: "Armazenado"
     };
+
+    await supabase.from("clientes").insert([
+      {
+        codigo: nova.codigo,
+        ordem: pedido.ordem,
+        nome: pedido.nome,
+        formato: pedido.formato,
+        cilindro: pedido.cilindro,
+        status: pedido.status
+      }
+    ]);
 
     setDados((prev) => {
       const existe = prev.find((cliente) => cliente.codigo === nova.codigo);
@@ -1892,6 +1904,35 @@ export default function SistemaPastasPreview() {
     }
   };
 
+  const enviarTudoParaBanco = async () => {
+    const confirmar = confirm(
+      "Enviar todos os dados atuais para o Supabase? Faça isso só uma vez para evitar duplicar registros."
+    );
+
+    if (!confirmar) return;
+
+    const registros = dados.flatMap((cliente) =>
+      cliente.pedidos.map((pedido) => ({
+        codigo: cliente.codigo,
+        ordem: pedido.ordem,
+        nome: pedido.nome,
+        formato: pedido.formato,
+        cilindro: pedido.cilindro,
+        status: pedido.status
+      }))
+    );
+
+    const { error } = await supabase.from("clientes").insert(registros);
+
+    if (error) {
+      console.error(error);
+      alert("Erro ao enviar dados para o Supabase. Veja o console.");
+      return;
+    }
+
+    alert("Todos os dados foram enviados para o Supabase!");
+  };
+
   const dadosFiltrados = dados
     .map((cliente) => {
       const termo = pesquisa.toLowerCase().trim();
@@ -1966,6 +2007,13 @@ export default function SistemaPastasPreview() {
               className="bg-blue-100 text-blue-700 px-5 py-3 rounded-2xl font-bold"
             >
               📜 Histórico
+            </button>
+
+            <button
+              onClick={enviarTudoParaBanco}
+              className="bg-purple-100 text-purple-700 px-5 py-3 rounded-2xl font-bold"
+            >
+              ☁️ Enviar tudo para o banco
             </button>
 
             <div className="ml-auto flex gap-5 font-bold">
