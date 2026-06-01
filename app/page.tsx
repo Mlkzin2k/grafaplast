@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { KeyboardEvent } from "react";
+import { supabase } from "./lib/supabase";
 
 type Pedido = {
   ordem: string;
@@ -1840,6 +1841,35 @@ export default function SistemaPastasPreview() {
       )
   );
 
+
+  const enviarTudoParaBanco = async () => {
+    const registros = dados.flatMap((cliente) =>
+      cliente.pedidos.map((pedido) => ({
+        codigo: cliente.codigo,
+        ordem: pedido.ordem,
+        nome: pedido.nome,
+        formato: pedido.formato,
+        cilindro: pedido.cilindro,
+        status: pedido.status
+      }))
+    );
+
+    if (registros.length === 0) {
+      alert("Nenhum dado para enviar.");
+      return;
+    }
+
+    const { error } = await supabase.from("clientes").insert(registros);
+
+    if (error) {
+      alert("Erro ao enviar dados para o banco.");
+      console.error(error);
+      return;
+    }
+
+    alert("Dados enviados para o banco!");
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 p-6 relative overflow-hidden">
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -1894,6 +1924,13 @@ export default function SistemaPastasPreview() {
               className="bg-blue-100 text-blue-700 px-5 py-3 rounded-2xl font-bold"
             >
               📜 Histórico
+            </button>
+
+            <button
+              onClick={enviarTudoParaBanco}
+              className="bg-purple-100 text-purple-700 px-5 py-3 rounded-2xl font-bold"
+            >
+              ☁️ Enviar tudo para o banco
             </button>
 
             <div className="ml-auto flex gap-5 font-bold">
