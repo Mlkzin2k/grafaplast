@@ -1721,21 +1721,45 @@ export default function SistemaPastasPreview() {
     setUsuario("");
     setSenha("");
   };
+useEffect(() => {
+  carregarDados();
+}, []);
 
-  useEffect(() => {
-    const dadosSalvos = localStorage.getItem("grafaplast-dados-v2");
-    const historicoSalvo = localStorage.getItem("grafaplast-historico-v2");
+const carregarDados = async () => {
+  const { data, error } = await supabase
+    .from("clientes")
+    .select("*");
 
-    if (dadosSalvos) {
-      setDados(JSON.parse(dadosSalvos));
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const agrupado: Cliente[] = [];
+
+  data.forEach((item) => {
+    const existe = agrupado.find((x) => x.codigo === item.codigo);
+
+    const pedido = {
+      ordem: item.ordem,
+      nome: item.nome,
+      formato: item.formato,
+      cilindro: item.cilindro,
+      status: item.status
+    };
+
+    if (existe) {
+      existe.pedidos.push(pedido);
+    } else {
+      agrupado.push({
+        codigo: item.codigo,
+        pedidos: [pedido]
+      });
     }
+  });
 
-    if (historicoSalvo) {
-      setHistorico(JSON.parse(historicoSalvo));
-    }
-
-    setCarregado(true);
-  }, []);
+  setDados(agrupado);
+};
 
   useEffect(() => {
     if (carregado) {
